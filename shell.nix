@@ -4,6 +4,7 @@ let
   python-packages = ps: with ps; [
     beautifulsoup4
     black
+    css-inline
     # huggingface-hub
     # regex
     werkzeug
@@ -17,7 +18,7 @@ pkgs.mkShell {
     uv
   ];
   shellHook = ''
-    python -m venv .venv --copies
     uv sync
+    python -m venv .venv --copies
   '';
 }
