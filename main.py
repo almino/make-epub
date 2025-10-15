@@ -22,7 +22,7 @@ def process_html_file(input_file):
           empty_tag.decompose()
 
     # Remove all <script> tags
-    for script in soup.find_all('script'):
+    for script in soup.find_all(['form', 'script']):
       script.decompose()
 
       # Remove all <a> tags with href starting with "javascript:"
