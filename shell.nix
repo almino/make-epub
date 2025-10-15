@@ -3,6 +3,7 @@
 let
   python-packages = ps: with ps; [
     beautifulsoup4
+    black
     # huggingface-hub
     # regex
     werkzeug
