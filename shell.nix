@@ -6,6 +6,7 @@ let
     black
     css-inline
     # huggingface-hub
+    pandoc
     # regex
     werkzeug
   ];
