@@ -16,6 +16,11 @@ def process_html_file(input_file):
       with open(backup_file, 'w', encoding='utf-8') as backup:
         backup.write(str(soup))
 
+      # Remove all empty <li> and <td> elements inside the <body> tag
+      for empty_tag in soup.body.find_all(['a', 'li', 'p', 'td']):
+        if not empty_tag.text.strip():
+          empty_tag.decompose()
+
     # Remove all <script> tags
     for script in soup.find_all('script'):
       script.decompose()
