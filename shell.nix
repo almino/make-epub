@@ -5,24 +5,23 @@ let
     beautifulsoup4
     black
     css-inline
-    # huggingface-hub
+    pymupdf
     pypandoc
     pandoc-latex-environment
-    # regex
     werkzeug
   ];
+  shellPython = pkgs.python3.withPackages python-packages;
 in
 
 pkgs.mkShell {
   packages = with pkgs; [
-    (python3.withPackages python-packages)
     pandoc
     sqlitebrowser
     texliveMedium
     uv
-  ];
+  ] ++ [ shellPython ];
   shellHook = ''
-    uv sync
     python -m venv .venv --copies
+    uv sync --active --no-install-project --managed-python --quiet --python .venv/bin/python
   '';
 }
