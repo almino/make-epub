@@ -97,9 +97,11 @@ def main(source_pdf):
                 el.line = l
                 el.start_pos = round(span["bbox"][0], 2)
                 el.end_pos = round(el.bbox[2], 2)
-                el.is_numeric = el.text.strip().isnumeric()
+                el.stripped_text = el.text.strip()
+                el.is_numeric = el.stripped_text.isnumeric()
                 el.is_line_break = el.start_pos == line_break_starts
                 el.ends_paragraph = el.end_pos != line_break_ends
+                el.ends_with_aplha = el.stripped_text[-1].isalpha()
                 page_spans.append(el)
 
                 save_to_rank(char_flags, el.char_flags, j)
@@ -109,8 +111,12 @@ def main(source_pdf):
 
         for k, span in enumerate(page_spans):
             if k == 0 and span.block_index == 0 and span.is_numeric:
-                continue
+                continue # likely a page number
             print(span)
+            # detectar se é título usando `ends_paragraph` e `most_common_flag`
+            # detectar se é começo de parágrafo usando `is_line_break` e `most_common_flag`
+            # detectar se faz parte do mesmo parágrafo usando `is_line_break`
+            # juntar as linhas de um mesmo parágrafo
 
 
 if __name__ == "__main__":
