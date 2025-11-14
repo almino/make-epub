@@ -14,6 +14,11 @@ let
 in
 
 pkgs.mkShell {
+  buildInputs = with pkgs; [
+    python3Packages.virtualenv # run virtualenv .
+    # python3Packages.black
+    python3Packages.pymupdf
+  ];
   packages = with pkgs; [
     pandoc
     sqlitebrowser

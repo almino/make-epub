@@ -9,4 +9,5 @@ dependencies = [
     "css-inline>=0.17.0",
     "pandoc>=2.4",
     "pandoc-latex-environment>=1.2.1.0",
+    "pymupdf>=1.26.6",
 ]
