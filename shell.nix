@@ -5,9 +5,13 @@ let
     beautifulsoup4
     black
     css-inline
+    jupyter
+    notebook
+    numpy
+    pandas
+    pandoc-latex-environment
     pymupdf
     pypandoc
-    pandoc-latex-environment
     werkzeug
   ];
   shellPython = pkgs.python3.withPackages python-packages;
@@ -17,6 +21,7 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     python3Packages.virtualenv # run virtualenv .
     # python3Packages.black
+    # python3Packages.pandas
     python3Packages.pymupdf
   ];
   packages = with pkgs; [
