@@ -60,17 +60,23 @@ def rank_dict(payload):
     return [key for key, _ in sorted_blocks]
 
 
-def main(source_pdf):
+def extract_spans(source_pdf):
+    import konsole
     import pymupdf
 
     src = pymupdf.open(source_pdf)  # input PDF
+    pieces: list[Span] = []
 
-    for spage in src.pages(19, 20):  # for each page in input
+    for spage in src.pages():  # for each page in input
+        pn = spage.number
         page_dict = spage.get_text("dict")
         if len(page_dict["blocks"]) == 0:
+            konsole.log(f"Skipping empty page {pn}…")
             continue
 
+        konsole.log(f"Processing page {pn}…")
         page_blocks = [block for block in page_dict["blocks"] if block.get("lines") is not None]
+        konsole.log(f"  Found {len(page_blocks)} blocks.")
         page_lines = []
         for i, b in enumerate(page_blocks):
             save_box_pos(b, i)
@@ -78,7 +84,7 @@ def main(source_pdf):
                 if el.get("spans") is None:
                     continue
                 # Add block reference as the first element
-                page_lines.append({"block": i, **el})
+                page_lines.append({"page": spage.number, "block": i, **el})
 
         beginings_pos = rank_dict(boxes_start)
         endings_pos = rank_dict(boxes_end)
@@ -101,22 +107,26 @@ def main(source_pdf):
                 el.is_numeric = el.stripped_text.isnumeric()
                 el.is_line_break = el.start_pos == line_break_starts
                 el.ends_paragraph = el.end_pos != line_break_ends
-                el.ends_with_aplha = el.stripped_text[-1].isalpha()
-                page_spans.append(el)
+                el.page = spage.number
 
-                save_to_rank(char_flags, el.char_flags, j)
+                if len(el.stripped_text) > 0:
+                    el.ends_with_aplha = el.stripped_text[-1].isalpha()
+                    page_spans.append(el)
+                    save_to_rank(char_flags, el.char_flags, j)
 
         common_char_flags = rank_dict(char_flags)
         most_common_flag = common_char_flags[0] if len(common_char_flags) > 0 else None
 
-        for k, span in enumerate(page_spans):
-            if k == 0 and span.block_index == 0 and span.is_numeric:
-                continue # likely a page number
-            print(span)
-            # detectar se é título usando `ends_paragraph` e `most_common_flag`
-            # detectar se é começo de parágrafo usando `is_line_break` e `most_common_flag`
-            # detectar se faz parte do mesmo parágrafo usando `is_line_break`
-            # juntar as linhas de um mesmo parágrafo
+        pieces.extend(page_spans)
+
+    return pieces
+
+
+def main(source_pdf):
+    import konsole
+
+    for span in extract_spans(source_pdf):
+        konsole.log(span)
 
 
 if __name__ == "__main__":
