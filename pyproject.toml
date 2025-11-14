@@ -8,4 +8,5 @@ dependencies = [
     "beautifulsoup4>=4.14.2",
     "css-inline>=0.17.0",
     "pandoc>=2.4",
+    "pandoc-latex-environment>=1.2.1.0",
 ]

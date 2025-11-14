@@ -10,6 +10,8 @@ def remove_empty_tags(soup):
         if not empty_tag.text.strip():
             empty_tag.decompose()
 
+    return soup
+
 
 def process_html_file(input_file):
     try:
@@ -23,6 +25,10 @@ def process_html_file(input_file):
             backup_file = f"{base}_{timestamp}{ext}"
             with open(backup_file, "w", encoding="utf-8") as backup:
                 backup.write(str(soup))
+
+        # Remove all <link> tags in the <head> that point to CSS files
+        for link_tag in soup.head.find_all("link", rel="stylesheet"):
+            link_tag.decompose()
 
         remove_empty_tags(soup)
 

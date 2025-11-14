@@ -1,12 +1,59 @@
 from bs4 import BeautifulSoup
-import css_inline
 from datetime import datetime
 from pathlib import Path
 import os
+import pandoc
 import sys
 import traceback
 
-import pandoc
+
+def remove_empty_tags(soup):
+    # Remove all empty <li> and <td> elements inside the <body> tag
+    for empty_tag in soup.body.find_all(["a", "li", "p", "td", "ul"]):
+        if not empty_tag.text.strip():
+            empty_tag.decompose()
+
+    return soup
+
+
+def remove_non_printable(soup):
+    for hidden in soup.body.select(
+        ", ".join(
+            [
+                ".material-icons-outlined",
+                ".btn",
+                ".articleMenu",
+                "section.levelMenu",
+                "div.col-md-2.md-body-dashVertical",
+                "#ModalScimago",
+                "#ModalDownloads",
+                "#ModalVersionsTranslations",
+                "#metric_modal_id",
+                "#ModalHowcite",
+            ]
+        )
+    ):
+        hidden.decompose()
+
+    for broken_link in soup.body.find_all("a", href=True):
+        href = broken_link["href"]
+        if href.startswith("http") or href.startswith("//"):
+            print(f"Keeping link: {broken_link['href']}")
+            continue
+        broken_link.decompose()
+
+    return soup
+
+
+def fix_headings(soup):
+    h1_title = soup.body.find("h1", class_="article-title")
+    if h1_title:
+        h1_title.decompose()
+        for h in range(2, 7):
+            for heading in soup.body.find_all(f"h{h}"):
+                heading.name = f"h{h-1}"
+
+    return soup
 
 
 def read_file(file_path):
@@ -30,6 +77,23 @@ def process_html_file(input_file):
     try:
         fyle = read_file(input_file)
         soup = BeautifulSoup(fyle, "html.parser")
+        soup = remove_non_printable(soup)
+        soup = fix_headings(soup)
+        soup = remove_empty_tags(soup)
+
+        meta_title = None
+        if soup.head:
+            meta_title = soup.head.find("meta", property="og:title")
+            print(f"Meta title found: {meta_title}")
+
+            if meta_title and meta_title.get("content"):
+                title_text = meta_title["content"]
+                if soup.title:
+                    soup.title.string = title_text
+                else:
+                    new_title_tag = soup.new_tag("title")
+                    new_title_tag.string = title_text
+                    soup.head.append(new_title_tag)
 
         # Adiciona "https:" a links que começam com //
         for link_tag in soup.head.find_all("link", rel="stylesheet"):
@@ -78,6 +142,7 @@ def process_html_file(input_file):
             lang_attr = soup.html.get("lang", "pt-BR")
             pandoc_html = pandoc.read(source=str(soup), format="html")
             output_odt = str(pathable.with_suffix(".odt"))
+            # output_pdf = str(pathable.with_suffix(".pdf"))
             pandoc.write(
                 pandoc_html,
                 format="odt",
@@ -89,6 +154,8 @@ def process_html_file(input_file):
                     f"lang={lang_attr}",
                 ],
             )
+            # pandoc_odt = pandoc.read(file=output_odt, format="odt")
+            # pandoc.write(pandoc_odt, format="pdf", file=output_pdf)
 
             print(f"Converted HTML to ODT: {output_odt}")
         except Exception as e:

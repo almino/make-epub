@@ -6,7 +6,8 @@ let
     black
     css-inline
     # huggingface-hub
-    pandoc
+    pypandoc
+    pandoc-latex-environment
     # regex
     werkzeug
   ];
@@ -15,7 +16,9 @@ in
 pkgs.mkShell {
   packages = with pkgs; [
     (python3.withPackages python-packages)
+    pandoc
     sqlitebrowser
+    texliveMedium
     uv
   ];
   shellHook = ''
